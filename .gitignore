@@ -3,3 +3,6 @@ venv/
 
 # If your folder is named ".venv"
 .venv/
+
+instance/
+__pycache__/
