@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import select
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///tasks.db"
@@ -20,12 +21,12 @@ def home():
 
 @app.route("/tasks")
 def get_tasks():
-    all_tasks = Task.query.all()
+    all_tasks = db.session.execute(select(Task)).scalars().all()
     return jsonify([task.to_dict() for task in all_tasks])
 
 @app.route("/tasks/<int:task_id>")
 def get_task(task_id):
-    one_task = Task.query.get(task_id)
+    one_task = db.session.get(Task, task_id)
     if one_task:
         return jsonify(one_task.to_dict())
     return jsonify({"error": "Task not found"}), 404
@@ -33,8 +34,10 @@ def get_task(task_id):
 @app.route("/tasks", methods=["POST"])
 def create_task():
     data = request.get_json()
-    if "title" not in data:
-        return jsonify({"error": "Title is Required"}), 400
+    if not data:
+        return jsonify({"error": "Empty body"}), 400
+    if "title" not in data or not data["title"].strip():
+        return jsonify({"error": "Title is required"}), 400
     new_task = Task(title=data["title"])
     db.session.add(new_task)
     db.session.commit()
@@ -47,7 +50,7 @@ def update_task(task_id):
         return jsonify({"error": "Empty body"}), 400
     if "title" not in data and "done" not in data:
         return jsonify({"error": "Nothing to update"}), 400
-    task = Task.query.get(task_id)
+    task = db.session.get(Task, task_id)
     if task is None:
         return jsonify({"error": "Task not found"}), 404
     if "title" in data:
@@ -60,7 +63,7 @@ def update_task(task_id):
 
 @app.route("/tasks/<int:task_id>", methods=["DELETE"])
 def delete_task(task_id):
-    task = Task.query.get(task_id)
+    task = db.session.get(Task, task_id)
     if task is None:
         return jsonify({"error": "Task not found"}), 404
     db.session.delete(task)
