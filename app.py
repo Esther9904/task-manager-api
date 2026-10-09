@@ -9,6 +9,10 @@ def create_app(database_uri="sqlite:///tasks.db"):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
     db.init_app(app)
     app.register_blueprint(bp)
+
+    with app.app_context():
+        db.create_all()
+        
     return app
 
 app = create_app()

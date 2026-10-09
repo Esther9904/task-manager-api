@@ -7,7 +7,20 @@ bp = Blueprint("tasks", __name__)
 
 @bp.route("/")
 def home():
-    return "Hello, Task Manager!"
+    return jsonify(
+        {
+            "message": "Hello Task Manager",
+            "endpoints": {
+                "GET /tasks": "List all tasks",
+                "GET /tasks/<id>": "Get a single task by id",
+                "POST /tasks": "Make a new task -(JSON body is expected)",
+                "PATCH /tasks/<id>": "Update a specific task - (JSON body is expected)",
+                "DELETE /tasks/<id>": "Delete a specific task"
+
+            }
+            
+        }
+    )
 
 @bp.route("/tasks")
 def get_tasks():
